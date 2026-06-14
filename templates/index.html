@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Title Identifier – AI-Powered Classification</title>
+
+  <!-- Bootstrap 5 CDN -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+    crossorigin="anonymous"
+  />
+  <!-- Font Awesome 6 CDN -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    rel="stylesheet"
+    crossorigin="anonymous"
+  />
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════════════════════════ -->
+  <header class="app-header text-center py-4">
+    <div class="container">
+      <!-- History button — top-right -->
+      <div class="d-flex justify-content-end mb-2">
+        <a href="/history" class="btn btn-history">
+          <i class="fa-solid fa-clock-rotate-left me-2"></i>History
+        </a>
+      </div>
+      <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+        <i class="fa-solid fa-brain fa-2x header-icon"></i>
+        <h1 class="header-title mb-0">Job Title Identifier</h1>
+      </div>
+      <p class="header-subtitle mb-0">
+        TF-IDF Stage&nbsp;1 &nbsp;·&nbsp; BERT Stage&nbsp;2
+      </p>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════════════════════ -->
+  <main class="container my-5">
+
+    <!-- Input Card -->
+    <div class="card input-card shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-3">
+          <i class="fa-solid fa-file-lines text-primary me-2"></i>
+          Paste Your Job Description
+        </h5>
+        <textarea
+          id="jobDescription"
+          class="form-control mb-3"
+          rows="10"
+          placeholder="Paste your job description here... (minimum 20 characters)"
+        ></textarea>
+        <button
+          id="analyzeBtn"
+          class="btn btn-primary btn-lg w-100 analyze-btn"
+          onclick="analyzeJob()"
+        >
+          <i class="fa-solid fa-magnifying-glass-chart me-2"></i>
+          Analyze Job Description
+        </button>
+
+        <!-- Loading spinner (hidden by default) -->
+        <div id="loadingSpinner" class="text-center mt-4 d-none">
+          <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p id="loadingMsg" class="mt-2 text-muted">Checking for explicit job title...</p>
+        </div>
+
+        <!-- Error alert (hidden by default) -->
+        <div id="errorAlert" class="alert alert-danger mt-3 d-none" role="alert">
+          <i class="fa-solid fa-circle-exclamation me-2"></i>
+          <span id="errorMessage"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Results Section (hidden until prediction) ───────────────── -->
+    <div id="resultsSection" class="d-none fade-in">
+
+      <!-- Card 1: Prediction Result -->
+      <div class="card result-card shadow-sm mb-4">
+        <div class="card-body p-4">
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <h5 class="card-title mb-0">
+              <i class="fa-solid fa-robot text-primary me-2"></i>
+              Prediction Result
+            </h5>
+            <span id="stageBadge" class="badge fs-6 px-3 py-2"></span>
+          </div>
+
+          <!-- Job Title -->
+          <div class="result-title-block mb-3">
+            <p class="result-label text-muted mb-1">Predicted Job Title</p>
+            <h2 id="predictedTitle" class="predicted-title mb-0"></h2>
+          </div>
+
+          <!-- Job Category -->
+          <div class="d-flex align-items-center gap-2 mb-4">
+            <i class="fa-solid fa-layer-group text-secondary"></i>
+            <span class="text-muted me-1">Category:</span>
+            <span id="jobCategory" class="fw-semibold category-text"></span>
+          </div>
+
+          <!-- Confidence Score -->
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-muted">
+                <i class="fa-solid fa-gauge-high me-1"></i>Confidence Score
+              </span>
+              <span id="confidenceLabel" class="fw-bold confidence-label"></span>
+            </div>
+            <div class="progress confidence-bar" style="height: 18px;">
+              <div
+                id="confidenceBar"
+                class="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style="width: 0%"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 2: Alternative Suggestions -->
+      <div id="alternativesCard" class="card result-card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="card-title mb-4">
+            <i class="fa-solid fa-list-ol text-warning me-2"></i>
+            Alternative Suggestions
+          </h5>
+          <div id="alternativesList"></div>
+        </div>
+      </div>
+
+      <!-- Card 3: Extracted Skills -->
+      <div class="card result-card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="card-title mb-4">
+            <i class="fa-solid fa-wrench text-success me-2"></i>
+            Extracted Skills
+          </h5>
+          <div class="row g-4">
+            <!-- Technical Skills -->
+            <div class="col-md-6">
+              <h6 class="skills-heading mb-3">
+                <i class="fa-solid fa-code text-primary me-2"></i>Technical Skills
+              </h6>
+              <div id="technicalSkills" class="skills-container"></div>
+              <p id="noTechSkills" class="text-muted fst-italic d-none">No technical skills detected.</p>
+            </div>
+            <!-- Soft Skills -->
+            <div class="col-md-6">
+              <h6 class="skills-heading mb-3">
+                <i class="fa-solid fa-people-group text-warning me-2"></i>Soft Skills
+              </h6>
+              <div id="softSkills" class="skills-container"></div>
+              <p id="noSoftSkills" class="text-muted fst-italic d-none">No soft skills detected.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /resultsSection -->
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════════════════════ -->
+  <footer class="app-footer text-center py-3">
+    <div class="container">
+      <small>
+        <i class="fa-solid fa-graduation-cap me-1"></i>
+        Two Stage Job Title Identification System &nbsp;|&nbsp; Academic Project
+      </small>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"
+  ></script>
+  <!-- Custom JavaScript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

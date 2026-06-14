@@ -1,0 +1,289 @@
+/* =============================================================
+   style.css — Two Stage Job Title Identification System
+   ============================================================= */
+
+/* ── Global ──────────────────────────────────────────────────── */
+:root {
+  --navy:        #1a1f36;
+  --navy-dark:   #12162a;
+  --navy-light:  #252c4a;
+  --accent:      #4f80f7;
+  --accent-alt:  #6c63ff;
+  --success:     #28a745;
+  --warning:     #fd7e14;
+  --card-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  --radius:      12px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f0f2f8;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* ── History button (header top-right) ───────────────────────── */
+.btn-history {
+  color: #a0b4ff;
+  border: 1.5px solid #4f80f7;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-history:hover {
+  background: rgba(79, 128, 247, 0.18);
+  color: #ffffff;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.app-header {
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-light) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.header-icon {
+  color: #7ea8ff;
+}
+
+.header-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-subtitle {
+  color: #a0aec0;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+}
+
+/* ── Cards ────────────────────────────────────────────────────── */
+.card {
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+.input-card {
+  border-top: 4px solid var(--accent);
+}
+
+.result-card {
+  border-left: 4px solid var(--accent);
+  transition: transform 0.2s ease;
+}
+
+.result-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Textarea ─────────────────────────────────────────────────── */
+#jobDescription {
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+#jobDescription:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 128, 247, 0.18);
+  outline: none;
+}
+
+/* ── Analyze button ───────────────────────────────────────────── */
+.analyze-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.analyze-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.analyze-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Stage Badge ──────────────────────────────────────────────── */
+.badge-stage1 {
+  background-color: #198754 !important;
+  color: #fff;
+}
+
+.badge-stage2 {
+  background-color: var(--accent) !important;
+  color: #fff;
+}
+
+/* ── Prediction Title ─────────────────────────────────────────── */
+.result-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.predicted-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.category-text {
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+/* ── Confidence Bar ───────────────────────────────────────────── */
+.confidence-bar {
+  border-radius: 10px;
+  background-color: #e9ecef;
+  overflow: hidden;
+}
+
+.confidence-bar .progress-bar {
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 100%);
+  border-radius: 10px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.confidence-label {
+  font-size: 1.1rem;
+  color: var(--accent-alt);
+}
+
+/* ── Alternatives ─────────────────────────────────────────────── */
+.alt-item {
+  margin-bottom: 14px;
+}
+
+.alt-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.alt-bar-wrap {
+  height: 10px;
+  background: #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.alt-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #fd7e14 0%, #ffc107 100%);
+  border-radius: 8px;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.alt-pct {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── Skills ───────────────────────────────────────────────────── */
+.skills-heading {
+  font-weight: 700;
+  color: #333;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 6px;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: transform 0.15s;
+}
+
+.skill-badge:hover {
+  transform: scale(1.05);
+}
+
+.skill-tech {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.skill-soft {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+/* ── Footer ───────────────────────────────────────────────────── */
+.app-footer {
+  background: var(--navy);
+  color: #7f8ea8;
+  font-size: 0.85rem;
+  margin-top: auto;
+}
+
+/* ── Fade-in animation ────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* ── Responsive tweaks ────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .header-title {
+    font-size: 1.4rem;
+  }
+
+  .predicted-title {
+    font-size: 1.5rem;
+  }
+
+  .analyze-btn {
+    font-size: 0.95rem;
+  }
+}

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction History – Job Title Identifier</title>
+
+  <!-- Bootstrap 5 CDN -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+    crossorigin="anonymous"
+  />
+  <!-- Font Awesome 6 CDN -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    rel="stylesheet"
+    crossorigin="anonymous"
+  />
+
+  <style>
+    /* ── Design tokens (match index.html palette) ─────────────────── */
+    :root {
+      --bg:      #0C0E14;
+      --surface: #13161F;
+      --surface2:#1C2030;
+      --border:  #2a2f45;
+      --accent:  #5B7CFA;
+      --accent2: #7B96FF;
+      --text:    #E2E8F0;
+      --muted:   #7A85A3;
+      --green:   #22C55E;
+      --yellow:  #EAB308;
+      --red:     #EF4444;
+      --radius:  12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    .hist-header {
+      background: linear-gradient(135deg, #0d1020 0%, #1a1f36 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+    }
+
+    .back-btn {
+      color: var(--accent2);
+      border: 1.5px solid var(--accent);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .back-btn:hover { background: rgba(91,124,250,0.18); color: #fff; }
+
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .page-subtitle { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── Stats bar ───────────────────────────────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent2);
+      display: block;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 4px;
+    }
+
+    /* ── Action row ──────────────────────────────────────────────────── */
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-heading {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .btn-clear {
+      background: transparent;
+      color: var(--red);
+      border: 1.5px solid var(--red);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-clear:hover { background: rgba(239,68,68,0.15); }
+
+    /* ── Prediction cards ────────────────────────────────────────────── */
+    .pred-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .pred-card:hover { border-color: var(--accent); }
+
+    .pred-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .pred-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .pred-ts {
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Chips */
+    .chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .chip-cat  { background: rgba(91,124,250,0.18); color: var(--accent2); }
+    .chip-s1   { background: rgba(34,197,94,0.15);  color: var(--green);   }
+    .chip-s2   { background: rgba(91,124,250,0.15); color: var(--accent2); }
+    .chip-high { background: rgba(34,197,94,0.15);  color: var(--green);   }
+    .chip-med  { background: rgba(234,179,8,0.18);  color: var(--yellow);  }
+    .chip-low  { background: rgba(239,68,68,0.15);  color: var(--red);     }
+
+    .pred-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* Skill tags */
+    .skill-tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .skills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; color: var(--border); }
+    .empty-state p { font-size: 1rem; }
+    .empty-state a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+    .empty-state a:hover { text-decoration: underline; }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .hist-footer {
+      background: #0a0c13;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      text-align: center;
+      padding: 14px;
+      font-size: 0.82rem;
+      margin-top: auto;
+    }
+
+    /* ── Fade-in ─────────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+    .fade-up { animation: fadeUp 0.4s ease forwards; }
+
+    /* ── Spinner ─────────────────────────────────────────────────────── */
+    .hist-spinner {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 576px) {
+      .page-title { font-size: 1.25rem; }
+      .stat-value { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────────── -->
+  <header class="hist-header">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h1 class="page-title">
+            <i class="fa-solid fa-clock-rotate-left me-2" style="color:#5B7CFA;"></i>
+            Prediction History
+          </h1>
+          <p class="page-subtitle mb-0 mt-1">Recent job analysis results</p>
+        </div>
+        <a href="/" class="back-btn">
+          <i class="fa-solid fa-arrow-left me-1"></i>Back to Analyzer
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <main class="container my-4" style="flex:1;">
+
+    <!-- Stats bar (populated by JS) -->
+    <div id="statsBar" class="stats-bar d-none">
+      <div class="stat-card">
+        <span id="statTotal" class="stat-value">—</span>
+        <div class="stat-label">Total Predictions</div>
+      </div>
+      <div class="stat-card">
+        <span id="statTitle" class="stat-value" style="font-size:1rem;">—</span>
+        <div class="stat-label">Most Common Title</div>
+      </div>
+      <div class="stat-card">
+        <span id="statCat" class="stat-value" style="font-size:1rem;">—</span>
+        <div class="stat-label">Most Common Category</div>
+      </div>
+      <div class="stat-card">
+        <span id="statConf" class="stat-value">—</span>
+        <div class="stat-label">Avg Confidence</div>
+      </div>
+    </div>
+
+    <!-- Action row -->
+    <div class="action-row">
+      <h2 class="section-heading">
+        <i class="fa-solid fa-list me-2" style="color:#5B7CFA;"></i>Recent Analyses
+      </h2>
+      <button class="btn-clear" id="clearBtn" onclick="clearHistory()">
+        <i class="fa-solid fa-trash me-1"></i>Clear History
+      </button>
+    </div>
+
+    <!-- Spinner -->
+    <div class="hist-spinner" id="loadingEl">
+      <div class="spinner-border" style="color:#5B7CFA; width:2.5rem; height:2.5rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3">Loading history...</p>
+    </div>
+
+    <!-- History list (populated by JS) -->
+    <div id="historyList"></div>
+
+    <!-- Empty state (hidden until confirmed empty) -->
+    <div id="emptyState" class="empty-state d-none">
+      <i class="fa-solid fa-inbox d-block"></i>
+      <p>No predictions yet.<br>
+        <a href="/">Analyze a job description</a> to get started.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────── -->
+  <footer class="hist-footer">
+    <i class="fa-solid fa-graduation-cap me-1"></i>
+    Two Stage Job Title Identification System &nbsp;|&nbsp; Academic Project
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"
+  ></script>
+
+  <script>
+    'use strict';
+
+    const loadingEl    = document.getElementById('loadingEl');
+    const historyList  = document.getElementById('historyList');
+    const emptyState   = document.getElementById('emptyState');
+    const statsBar     = document.getElementById('statsBar');
+
+    /* ── Helpers ──────────────────────────────────────────────────── */
+    function esc(str) {
+      const m = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' };
+      return String(str || '').replace(/[&<>"']/g, c => m[c]);
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return '—';
+      // SQLite stores UTC without trailing 'Z'; append it so Date parses correctly
+      const d = new Date(ts.includes('T') ? ts : ts.replace(' ', 'T') + 'Z');
+      if (isNaN(d)) return ts;
+      return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+           + ' · '
+           + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    function confidenceChip(label) {
+      const map = { High: 'chip-high', Medium: 'chip-med', Low: 'chip-low' };
+      const cls = map[label] || 'chip-med';
+      const icons = { High: 'fa-circle-check', Medium: 'fa-circle-half-stroke', Low: 'fa-circle-xmark' };
+      const icon = icons[label] || 'fa-circle';
+      return `<span class="chip ${cls}">
+                <i class="fa-solid ${icon} me-1"></i>${esc(label)} (${esc(label)})
+              </span>`;
+    }
+
+    function stageChip(stage) {
+      if (stage === 'Stage 1') {
+        return `<span class="chip chip-s1"><i class="fa-solid fa-bolt me-1"></i>S1: Pattern</span>`;
+      }
+      return `<span class="chip chip-s2"><i class="fa-solid fa-robot me-1"></i>S2: ML</span>`;
+    }
+
+    function skillTags(csvStr, limit = 3) {
+      if (!csvStr) return '<span style="color:var(--muted);font-size:0.78rem;">—</span>';
+      const skills = csvStr.split(',').map(s => s.trim()).filter(Boolean);
+      const shown  = skills.slice(0, limit);
+      const extra  = skills.length - shown.length;
+      let html = shown.map(s => `<span class="skill-tag">${esc(s)}</span>`).join('');
+      if (extra > 0) html += `<span class="skill-tag" style="color:var(--muted);">+${extra}</span>`;
+      return html || '<span style="color:var(--muted);font-size:0.78rem;">—</span>';
+    }
+
+    /* ── Render one prediction card ───────────────────────────────── */
+    function renderCard(rec) {
+      const confLabel = rec.confidence_label || 'Medium';
+      const confMap   = { High: 'chip-high', Medium: 'chip-med', Low: 'chip-low' };
+      const confCls   = confMap[confLabel] || 'chip-med';
+      const confIcon  = { High:'fa-circle-check', Medium:'fa-circle-half-stroke', Low:'fa-circle-xmark' };
+      const ci        = confIcon[confLabel] || 'fa-circle';
+
+      return `
+        <div class="pred-card fade-up">
+          <div class="pred-header">
+            <div>
+              <p class="pred-title">${esc(rec.predicted_title)}</p>
+            </div>
+            <span class="pred-ts">
+              <i class="fa-regular fa-clock me-1"></i>${formatTimestamp(rec.timestamp)}
+            </span>
+          </div>
+
+          <div class="pred-meta">
+            <span class="chip chip-cat"><i class="fa-solid fa-layer-group me-1"></i>${esc(rec.category)}</span>
+            <span class="chip ${confCls}">
+              <i class="fa-solid ${ci} me-1"></i>${esc(confLabel)} &middot; ${rec.confidence != null ? rec.confidence.toFixed(1) : '—'}%
+            </span>
+            ${stageChip(rec.detection_stage)}
+          </div>
+
+          <div class="skills-row">
+            <span style="font-size:0.75rem;color:var(--muted);margin-right:4px;">
+              <i class="fa-solid fa-code me-1"></i>Skills:
+            </span>
+            ${skillTags(rec.technical_skills, 3)}
+          </div>
+        </div>
+      `;
+    }
+
+    /* ── Load history ─────────────────────────────────────────────── */
+    async function loadHistory() {
+      loadingEl.classList.remove('d-none');
+      historyList.innerHTML = '';
+      emptyState.classList.add('d-none');
+      statsBar.classList.add('d-none');
+
+      try {
+        const res  = await fetch('/api/history');
+        const data = await res.json();
+
+        loadingEl.classList.add('d-none');
+
+        if (!res.ok || data.error) {
+          historyList.innerHTML = `<p style="color:var(--red);">Error: ${esc(data.error || 'Unknown error')}</p>`;
+          return;
+        }
+
+        // ── Stats bar ──────────────────────────────────────────────
+        const s = data.stats || {};
+        if (s.total > 0) {
+          document.getElementById('statTotal').textContent = s.total;
+          document.getElementById('statTitle').textContent = s.most_common_title || '—';
+          document.getElementById('statCat').textContent   = s.most_common_category || '—';
+          document.getElementById('statConf').textContent  =
+            s.avg_confidence != null ? s.avg_confidence.toFixed(1) + '%' : '—';
+          statsBar.classList.remove('d-none');
+        }
+
+        // ── Records ────────────────────────────────────────────────
+        const records = data.records || [];
+        if (records.length === 0) {
+          emptyState.classList.remove('d-none');
+          return;
+        }
+
+        historyList.innerHTML = records.map(renderCard).join('');
+
+      } catch (err) {
+        loadingEl.classList.add('d-none');
+        historyList.innerHTML = `<p style="color:var(--red);">Network error. Is Flask running?</p>`;
+      }
+    }
+
+    /* ── Clear history ────────────────────────────────────────────── */
+    async function clearHistory() {
+      if (!confirm('Delete all prediction history? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/history', { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          loadHistory();   // reload to show empty state
+        }
+      } catch (err) {
+        alert('Failed to clear history.');
+      }
+    }
+
+    // Load on page ready
+    loadHistory();
+  </script>
+</body>
+</html>
